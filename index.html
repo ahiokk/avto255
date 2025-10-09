@@ -1,282 +1,96 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Парсер артикулов</title>
-
-  <!-- 🔹 Фавиконка вкладки (логотип icon.svg в текущей папке) -->
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <!-- Необязательно, но полезно для некоторых браузеров -->
-  <link rel="alternate icon" href="icon.svg">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Экстрактор артикулов — Tirika / Ozon</title>
+  <link rel="icon" type="image/svg+xml" href="icon.svg"/>
   <style>
-    :root {
-      --bg: #0b0c10;
-      --card: #12141a;
-      --text: #e8ecf1;
-      --muted: #a7b0ba;
-      --accent: #4da3ff;
-      --border: #1c2028;
-      --ok: #27c498;
-      --warn: #ffb020;
-      --err: #ff4d6d;
-      --radius: 14px;
+    :root{
+      --bg:#0b1020; --ink:#e9ecf1; --muted:#9aa3b2;
+      --card:#131a3a; --outline:rgba(255,255,255,.12);
+      --brand:#7c5cff; --danger:#ff5d6c;
     }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      background: radial-gradient(1200px 800px at 20% -10%, #162034 0%, transparent 60%),
-                  radial-gradient(1000px 700px at 120% 20%, #1a2338 0%, transparent 55%),
-                  var(--bg);
-      color: var(--text);
-      font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    html{background:var(--bg)}
+    body{
+      margin:0; color:var(--ink);
+      font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Inter,Arial;
     }
-    .wrap {
-      max-width: 1100px;
-      margin: 32px auto;
-      padding: 0 20px 80px;
-    }
-    .title {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: .2px;
-      margin: 6px 0 18px;
-    }
-    .grid {
-      display: grid;
-      gap: 16px;
-      grid-template-columns: 1.4fr 1fr;
-    }
-    @media (max-width: 980px) {
-      .grid { grid-template-columns: 1fr; }
-    }
-    .card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.00));
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: 0 10px 30px rgba(0,0,0,.25);
-    }
-    .card-h {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border);
-    }
-    .card-h h3 {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text);
-    }
-    .card-b { padding: 14px; }
-
-    textarea {
-      width: 100%;
-      min-height: 260px;
-      resize: vertical;
-      border: 1px dashed var(--border);
-      border-radius: 12px;
-      background: #0e1117;
-      color: var(--text);
-      padding: 12px 12px 48px;
-      outline: none;
-      transition: border-color .2s ease;
-    }
-    textarea:focus { border-color: var(--accent); }
-
-    .controls {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-    button, .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      border-radius: 12px;
-      background: #182133;
-      color: var(--text);
-      border: 1px solid var(--border);
-      cursor: pointer;
-      font-weight: 600;
-      transition: transform .04s ease, background .2s ease, border-color .2s ease;
-      user-select: none;
-    }
-    button:hover, .btn:hover {
-      background: #1b2740;
-      border-color: #2a3446;
-    }
-    button:active, .btn:active { transform: translateY(1px); }
-    .btn-primary {
-      background: linear-gradient(180deg, #2f6df7, #275de0);
-      border-color: #2355cc;
-    }
-    .btn-primary:hover { filter: brightness(1.05); }
-
-    .out {
-      min-height: 260px;
-      white-space: pre-wrap;
-      word-break: break-word;
-      font-family: ui-monospace, Menlo, Consolas, "SF Mono", monospace;
-      font-size: 14px;
-      color: var(--text);
-    }
-    .muted { color: var(--muted); }
-
-    /* Пример блока — без надписи "пример..." */
-    .example {
-      font-size: 13px;
-      color: var(--muted);
-      border-top: 1px dashed var(--border);
-      margin-top: 10px;
-      padding-top: 10px;
+    /* фиксированный фон — чтобы низ не «ломался» */
+    body::before{
+      content:""; position:fixed; inset:0; z-index:-1;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #1b2352 0%, transparent 70%),
+        radial-gradient(1000px 500px at 110% 10%, #0d6a61 0%, transparent 60%),
+        var(--bg);
+      pointer-events:none;
     }
 
-    /* Футер — без "Всего/Уникальных" */
-    .footer {
-      max-width: 1100px;
-      margin: 24px auto 40px;
-      padding: 0 20px;
-      color: var(--muted);
-      font-size: 12px;
-      opacity: .8;
+    .wrap{max-width:1160px; margin:32px auto 24px; padding:0 20px}
+
+    header{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px}
+    .brand{display:flex; align-items:center; gap:12px}
+    .logo{width:32px; height:32px; object-fit:contain; border-radius:8px}
+    h1{margin:0; font-size:clamp(22px,4vw,30px)}
+    .preset{display:flex; gap:14px; align-items:center; color:var(--muted)}
+    .preset label{display:inline-flex; gap:8px; align-items:center; font-weight:700}
+    .preset input{accent-color:var(--brand)}
+
+    .grid{display:grid; gap:14px; grid-template-columns:1fr}
+    @media (min-width:980px){ .grid{grid-template-columns:1fr 1fr} }
+
+    .card{
+      background:color-mix(in oklab, var(--card) 93%, #000 7%);
+      border:1px solid var(--outline); border-radius:20px; padding:16px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
     }
+    .label{display:block; color:var(--muted); font-size:12px; letter-spacing:.3px; text-transform:uppercase; margin:0 0 8px}
+
+    textarea{
+      width:100%; min-height:300px; background:#0c1430; color:var(--ink);
+      border:1px solid var(--outline); border-radius:14px; padding:14px;
+      font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+      resize:vertical; outline:none
+    }
+    textarea:focus{box-shadow:0 0 0 2px color-mix(in oklab, var(--brand) 55%, transparent)}
+    textarea::-webkit-scrollbar{width:10px}
+    textarea::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12); border-radius:10px}
+
+    .controls{display:flex; gap:8px; margin-top:10px; justify-content:flex-end}
+    .controls.left{justify-content:flex-start}
+    button{border:0; border-radius:12px; padding:10px 14px; font-weight:800; cursor:pointer; transition:.15s filter,.05s transform}
+    .btn{background:linear-gradient(180deg, color-mix(in oklab, #fff 15%, var(--brand)), var(--brand)); color:#0e1020; box-shadow:0 10px 16px rgba(124,92,255,.25)}
+    .btn:hover{filter:saturate(1.12)} .btn:active{transform:translateY(1px)}
+    .ghost{background:transparent; color:var(--ink); border:1px solid var(--outline)}
+    .danger{background:linear-gradient(180deg, color-mix(in oklab, #fff 10%, var(--danger)), var(--danger)); color:#fff}
+
+    .info{font-size:12px; color:#d7def1; font-weight:600; margin-top:8px}
+    .removed{font-size:12px; color:#ff808c; white-space:pre-wrap; margin-top:6px}
+    footer{margin-top:22px; text-align:center; color:var(--muted)}
+    .signature{display:inline-flex; gap:10px; align-items:center; border:1px solid var(--outline); border-radius:999px; padding:8px 14px; text-transform:lowercase}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="title">Нормализация списка артикулов</div>
+    <header>
+      <div class="brand">
+        <img src="icon.svg" alt="" class="logo" onerror="this.style.display='none'">
+        <h1>Экстрактор артикулов</h1>
+      </div>
+      <div class="preset" aria-label="Настройки вывода">
+        <label><input type="radio" name="mode" value="lines" checked> Для Тирики</label>
+        <label><input type="radio" name="mode" value="semicolon"> Для Ozon</label>
+        <label style="margin-left:8px"><input type="checkbox" id="dedupe" checked> Без дубликатов</label>
+      </div>
+    </header>
 
     <div class="grid">
       <!-- Ввод -->
       <section class="card">
-        <div class="card-h">
-          <h3>Ввод</h3>
-        </div>
-        <div class="card-b">
-          <!-- 🔹 Плейсхолдер изменён: "Вставьте список артикулов" -->
-          <textarea id="source" placeholder="Вставьте список артикулов"></textarea>
-          <div class="controls">
-            <button class="btn-primary" id="run">Обработать</button>
-            <button id="clear">Очистить</button>
-            <button id="copy">Копировать результат</button>
-          </div>
-
-          <!-- Пример без слова «пример…» и с коротким содержимым -->
-          <div class="example" id="ex">
-            Пример формата входа (сокращённо):<br>
-            Renault&nbsp;&nbsp;391002033R<br>
-            Renault&nbsp;&nbsp;391004571R<br>
-            Renault&nbsp;&nbsp;391007212R<br>
-          </div>
-        </div>
-      </section>
-
-      <!-- Результат -->
-      <section class="card">
-        <div class="card-h">
-          <h3>Результат</h3>
-          <!-- 🔸 Счётчики «Всего/Уникальных» удалены по вашему запросу -->
-        </div>
-        <div class="card-b">
-          <div id="out" class="out muted">Здесь появится обработанный список…</div>
-        </div>
-      </section>
-    </div>
-  </div>
-
-  <div class="footer">
-    Если что-то отрабатывает не так — киньте пример входных данных.
-  </div>
-
-  <script>
-    // Простой разбор: берём всё, что похоже на «слово-артикул» (буквы/цифры, дефис/слэш)
-    const SRC = document.getElementById('source');
-    const OUT = document.getElementById('out');
-    const BTN_RUN = document.getElementById('run');
-    const BTN_CLEAR = document.getElementById('clear');
-    const BTN_COPY = document.getElementById('copy');
-    const EX = document.getElementById('ex');
-
-    function parseLines(text) {
-      // Разделяем по строкам, режем хвосты/повторы
-      const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-
-      // Пытаемся достать артикулы из второй «колонки», если есть
-      // Иначе берём «самое длинное слово» с буквенно-цифровыми символами
-      const rxArticle = /[A-Za-zА-Яа-я0-9][A-Za-zА-Яа-я0-9\-_/]+/g;
-
-      const result = [];
-      for (const raw of lines) {
-        // если есть чёткое разделение на 2+ «колонки» пробелами/табами
-        const cols = raw.split(/\s{2,}|\t+/).map(s => s.trim()).filter(Boolean);
-        let pick = null;
-
-        if (cols.length >= 2) {
-          // берём правую «колонку»
-          pick = cols[cols.length - 1];
-        } else {
-          // иначе пытаемся поймать «артикулоподобный» фрагмент
-          const m = raw.match(rxArticle);
-          if (m && m.length) {
-            // берём самый длинный фрагмент
-            pick = m.sort((a,b)=>b.length-a.length)[0];
-          }
-        }
-        if (pick) result.push(pick);
-      }
-      // dedupe с сохранением порядка
-      const seen = new Set();
-      const unique = [];
-      for (const a of result) {
-        if (!seen.has(a)) {
-          seen.add(a);
-          unique.push(a);
-        }
-      }
-      return unique;
-    }
-
-    BTN_RUN.addEventListener('click', () => {
-      const text = SRC.value.trim();
-      if (!text) {
-        OUT.textContent = 'Пустой ввод. Вставьте список артикулов.';
-        OUT.classList.add('muted');
-        return;
-      }
-      const list = parseLines(text);
-      OUT.textContent = list.join('\n') || 'Ничего не найдено.';
-      OUT.classList.remove('muted');
-    });
-
-    BTN_CLEAR.addEventListener('click', () => {
-      SRC.value = '';
-      OUT.textContent = 'Здесь появится обработанный список…';
-      OUT.classList.add('muted');
-    });
-
-    BTN_COPY.addEventListener('click', async () => {
-      const data = OUT.textContent.trim();
-      if (!data) return;
-      try {
-        await navigator.clipboard.writeText(data);
-        BTN_COPY.textContent = 'Скопировано';
-        setTimeout(() => BTN_COPY.textContent = 'Копировать результат', 1200);
-      } catch (e) {
-        alert('Не удалось скопировать: ' + e.message);
-      }
-    });
-
-    // Клик по примеру заполняет поле
-    EX.addEventListener('click', () => {
-      SRC.value =
-`Renault   391002033R
+        <div class="label">Вставьте список артикулов</div>
+        <textarea id="in" placeholder="Renault   391002033R
 Renault   391004571R
 Renault   391007212R
 Renault   391007857R
@@ -284,11 +98,108 @@ Renault   391008333R
 Renault   391014232R
 Renault   391016613R
 Renault   391018112R
-Renault   391018946R`;
-      OUT.textContent = 'Здесь появится обработанный список…';
-      OUT.classList.add('muted');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+Renault   391018946R"></textarea>
+        <div class="controls left">
+          <button id="btn-paste" class="ghost" title="Вставить из буфера">Вставить</button>
+          <button id="btn-clear" class="danger" title="Очистить поле">Очистить</button>
+        </div>
+      </section>
+
+      <!-- Вывод -->
+      <section class="card">
+        <div class="label">Результат</div>
+        <textarea id="out" readonly placeholder="Здесь появится результат..."></textarea>
+        <div class="controls">
+          <button id="btn-copy" class="btn" title="Копировать результат">Копировать</button>
+          <button id="btn-download" class="ghost" title="Скачать .txt">Скачать .txt</button>
+        </div>
+        <!-- 🔹 Счётчики всегда видны (в т.ч. для категории «Тирика») -->
+        <div id="info" class="info">Всего: 0 · Уникальных: 0</div>
+        <div id="removed" class="removed"></div>
+      </section>
+    </div>
+
+    <footer><span class="signature">made by ahiok</span></footer>
+  </div>
+
+  <script>
+    const $ = s => document.querySelector(s);
+
+    const input = $('#in');
+    const out = $('#out');
+    const info = $('#info');
+    const removedBox = $('#removed');
+
+    const btnPaste = $('#btn-paste');
+    const btnClear = $('#btn-clear');
+    const btnCopy = $('#btn-copy');
+    const btnDownload = $('#btn-download');
+
+    function extractCodes(raw){
+      const lines = raw.split(/\r?\n/);
+      const codes = [];
+      for(const line of lines){
+        if(!line.trim()) continue;
+        const parts = line.trim().split(/\s+/);
+        const token = (parts.pop() || '').replace(/[^A-Za-z0-9]/g,'');
+        if(token) codes.push(token.toUpperCase());
+      }
+      return codes;
+    }
+
+    function uniqueStable(arr){
+      const seen = new Set(); const result = []; const removed = [];
+      for(const x of arr){
+        if(!seen.has(x)){ seen.add(x); result.push(x); }
+        else { removed.push(x); }
+      }
+      return {result, removed};
+    }
+
+    function format(list, mode){ return mode==='semicolon' ? list.join(';') : list.join('\n'); }
+
+    function run(){
+      const mode = document.querySelector('input[name="mode"]:checked').value;
+      const raw = input.value;
+      // если пусто — показываем «0 · 0» для наглядности (важно для «Тирики»)
+      if(!raw.trim()){
+        out.value = '';
+        info.textContent = 'Всего: 0 · Уникальных: 0';
+        removedBox.textContent = '';
+        return;
+      }
+      const all = extractCodes(raw);
+      let list = all; let removed = [];
+      if($('#dedupe').checked){ ({result:list, removed} = uniqueStable(all)); }
+      out.value = format(list, mode);
+      info.textContent = `Всего: ${all.length} · Уникальных: ${list.length}`;
+      removedBox.textContent = removed.length ? `Удалены дубликаты: ${removed.join(', ')}` : '';
+    }
+
+    // Actions
+    btnPaste.addEventListener('click', async ()=>{
+      try{ input.value = await navigator.clipboard.readText(); }catch{}
+      run();
     });
+    btnClear.addEventListener('click', ()=>{
+      input.value=''; out.value='';
+      info.textContent='Всего: 0 · Уникальных: 0';
+      removedBox.textContent='';
+    });
+    btnCopy.addEventListener('click', ()=>{
+      navigator.clipboard.writeText(out.value);
+      btnCopy.animate([{opacity:1},{opacity:.6},{opacity:1}],{duration:350});
+    });
+    btnDownload.addEventListener('click', ()=>{
+      const blob = new Blob([out.value], {type:'text/plain;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='codes.txt'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    input.addEventListener('input', run);
+    document.querySelectorAll('input[name="mode"], #dedupe').forEach(el=> el.addEventListener('change', run));
+
+    run(); // первый расчёт
   </script>
 </body>
 </html>
