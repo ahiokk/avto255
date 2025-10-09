@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Экстрактор артикулов — Tirika / Ozon</title>
+  <link rel="icon" type="image/svg+xml" href="icon.svg"/>
   <style>
     :root {
       --bg: #0b1020;
@@ -44,12 +45,23 @@
     .removed { color: #ff7878; font-size: 12px; margin-top: 4px; white-space: pre-wrap; }
 
     footer { text-align: center; margin-top: 20px; color: var(--muted); font-size: 13px; }
+  
+    /* additions: fixed background layer + logo styles */
+    html,body{height:100%}
+    html{background:var(--bg)}
+    body::before{content:""; position:fixed; inset:0; z-index:-1; background:
+      radial-gradient(1200px 600px at 10% -10%, #1b2352 0%, transparent 70%),
+      radial-gradient(1000px 500px at 110% 10%, #0d6a61 0%, transparent 60%),
+      var(--bg);
+      pointer-events:none}
+    .brand{display:flex; align-items:center; gap:12px}
+    .logo{width:28px; height:28px; display:inline-block; border-radius:6px; object-fit:contain}
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <h1>Экстрактор артикулов <span class="badge">Tirika · Ozon</span></h1>
+      <div class="brand"><img src="icon.svg" alt="" class="logo" onerror="this.style.display='none'"/><h1>Экстрактор артикулов <span class="badge">Tirika · Ozon</span></h1></div>
       <div>
         <label><input type="radio" name="mode" value="lines" checked> Для Тирики</label>
         <label><input type="radio" name="mode" value="semicolon"> Для Ozon</label>
