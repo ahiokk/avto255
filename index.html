@@ -5,194 +5,156 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Экстрактор артикулов — Tirika / Ozon</title>
   <style>
-    :root{
+    :root {
       --bg: #0b1020;
-      --card:#121936;
-      --ink:#e9ecf1;
-      --muted:#9aa3b2;
-      --brand:#7c5cff;
-      --brand-2:#00e0a4;
-      --danger:#ff5d6c;
+      --card: #121936;
+      --ink: #e9ecf1;
+      --muted: #9aa3b2;
+      --brand: #7c5cff;
+      --brand-2: #00e0a4;
+      --danger: #ff5d6c;
       --outline: rgba(255,255,255,.15);
-      --ring: 0 0 0 2px color-mix(in oklab, var(--brand) 50%, transparent);
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
-      color:var(--ink); background:
-        radial-gradient(1200px 600px at 10% -10%, #1b2352 0%, transparent 70%),
-        radial-gradient(1000px 500px at 110% 10%, #0d6a61 0%, transparent 60%),
-        var(--bg);
+    * { box-sizing: border-box }
+    body {
+      margin: 0; font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu;
+      color: var(--ink);
+      background: radial-gradient(1200px 600px at 10% -10%, #1b2352 0%, transparent 70%), radial-gradient(1000px 500px at 110% 10%, #0d6a61 0%, transparent 60%), var(--bg);
     }
-    .wrap{max-width:1100px; margin:32px auto; padding:0 20px}
-    header{display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:14px}
-    h1{font-size:clamp(20px, 4vw, 28px); margin:0; font-weight:800; letter-spacing:.2px}
-    .badge{background:linear-gradient(90deg,var(--brand),var(--brand-2)); color:#0d1020; font-weight:700; padding:4px 10px; border-radius:999px; font-size:12px}
+    .wrap { max-width: 1100px; margin: 32px auto; padding: 0 20px }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px }
+    h1 { font-size: 28px; margin: 0; font-weight: 800 }
+    .badge { background: linear-gradient(90deg,var(--brand),var(--brand-2)); color: #0d1020; font-weight: 700; padding: 4px 10px; border-radius: 999px; font-size: 12px }
 
-    /* toolbar */
-    .toolbar{
-      display:grid; grid-template-columns: 1fr auto; gap:12px;
-      background:color-mix(in oklab, var(--card) 94%, #fff 0%);
-      border:1px solid var(--outline); border-radius:20px; padding:12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.05);
-      margin-bottom:14px;
-    }
-    .toolbar .left{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
-    .toolbar .right{display:flex; gap:10px; align-items:center}
-    .seg{display:inline-grid; grid-auto-flow:column; border:1px solid var(--outline); border-radius:12px; overflow:hidden}
-    .seg input{display:none}
-    .seg label{padding:10px 14px; background:transparent; color:var(--muted); font-weight:700; cursor:pointer}
-    .seg input:checked + label{background:rgba(255,255,255,.08); color:var(--ink)}
-    .switch-inline{display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--outline); border-radius:12px}
-    .switch-inline input{appearance:none; width:44px; height:26px; background:#1a2247; border:1px solid var(--outline); border-radius:999px; position:relative; outline:none; cursor:pointer}
-    .switch-inline input::after{content:""; position:absolute; top:2px; left:2px; width:22px; height:22px; background:linear-gradient(180deg,#fff,#d9e2ff); border-radius:50%; transition:left .2s}
-    .switch-inline input:checked::after{left:20px}
+    .grid { display: grid; grid-template-columns: 1fr; gap: 14px }
+    @media (min-width: 960px) { .grid { grid-template-columns: 1fr 1fr } }
 
-    button{border:0; border-radius:12px; padding:10px 14px; font-weight:700; color:#0d1020; cursor:pointer;
-      background:linear-gradient(180deg, color-mix(in oklab, #fff 15%, var(--brand)) , var(--brand));
-      box-shadow: 0 10px 16px rgba(124,92,255,.25); transition: transform .05s ease, filter .2s ease}
-    button:hover{filter:saturate(1.12)}
-    button:active{transform: translateY(1px)}
-    .btn-ghost{background:transparent; color:var(--ink); border:1px solid var(--outline); box-shadow:none}
-    .btn-danger{background:linear-gradient(180deg, color-mix(in oklab, #fff 10%, var(--danger)), var(--danger))}
+    .card { background: color-mix(in oklab, var(--card) 94%, #fff 0%); border: 1px solid rgba(255,255,255,.1); border-radius: 20px; padding: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
 
-    .grid{display:grid; grid-template-columns: 1fr; gap:14px}
-    @media (min-width:980px){ .grid{grid-template-columns: 1fr 1fr} }
+    textarea { width: 100%; min-height: 300px; background: #0c1430; color: var(--ink); border: 1px solid rgba(255,255,255,.1); border-radius: 14px; padding: 14px; font: 14px/1.5 monospace; resize: vertical; outline: none; }
 
-    .card{background:color-mix(in oklab, var(--card) 94%, #fff 0%); border:1px solid rgba(255,255,255,.08);
-      box-shadow: 0 10px 30px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.05);
-      border-radius:20px; padding:16px}
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: 8px }
 
-    .label{display:block; color:var(--muted); font-size:12px; letter-spacing:.3px; text-transform:uppercase; margin-bottom:8px}
+    button { border: none; border-radius: 10px; padding: 8px 14px; font-weight: 700; cursor: pointer; transition: all .2s; }
+    .btn-main { background: linear-gradient(90deg,var(--brand),var(--brand-2)); color: #0d1020; }
+    .btn-ghost { background: transparent; border: 1px solid var(--outline); color: var(--ink); }
+    .btn-danger { background: var(--danger); color: white; }
 
-    textarea, .out{
-      width:100%; min-height:300px; background:#0c1430; color:var(--ink);
-      border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:14px 14px 18px 14px;
-      outline:none; resize:vertical; font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
-    }
-    textarea:focus{box-shadow: var(--ring)}
+    .info { font-size: 13px; color: var(--muted); margin-top: 8px; }
+    .removed { color: #ff7878; font-size: 12px; margin-top: 4px; white-space: pre-wrap; }
 
-    footer{margin-top:22px; text-align:center}
-    .signature{display:inline-flex; align-items:center; gap:10px; padding:8px 14px; border-radius:999px; border:1px solid var(--outline);
-      color:#fff; font-weight:900; letter-spacing:.4px; text-transform:lowercase}
+    footer { text-align: center; margin-top: 20px; color: var(--muted); font-size: 13px; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
       <h1>Экстрактор артикулов <span class="badge">Tirika · Ozon</span></h1>
+      <div>
+        <label><input type="radio" name="mode" value="lines" checked> Для Тирики</label>
+        <label><input type="radio" name="mode" value="semicolon"> Для Ozon</label>
+        <label style="margin-left:10px"><input type="checkbox" id="dedupe" checked> Без дубликатов</label>
+      </div>
     </header>
-
-    <!-- Профессиональный тулбар -->
-    <div class="toolbar" role="toolbar" aria-label="Панель управления">
-      <div class="left">
-        <div class="seg" role="tablist" aria-label="Формат вывода">
-          <input type="radio" name="mode" id="mode-lines" value="lines" checked>
-          <label for="mode-lines" role="tab">Для Тирики</label>
-          <input type="radio" name="mode" id="mode-ozon" value="semicolon">
-          <label for="mode-ozon" role="tab">Для Ozon</label>
-        </div>
-        <label class="switch-inline" title="Удалять повторы кодов">
-          <span class="label" style="margin:0">Без дубликатов</span>
-          <input id="dedupe" type="checkbox" checked>
-        </label>
-      </div>
-      <div class="right">
-        <button id="btn-run" title="Преобразовать (Ctrl+Enter)">Преобразовать</button>
-        <button id="btn-download" class="btn-ghost" title="Скачать результат .txt">Скачать .txt</button>
-        <button id="btn-clear" class="btn-danger" title="Очистить поля">Очистить</button>
-      </div>
-    </div>
 
     <div class="grid">
       <section class="card">
-        <label class="label" for="in">Вставьте текст с двумя столбцами (название · артикул)</label>
-        <textarea id="in" placeholder="Пример:
-Nissan   39100-00Q6J
-Renault  391004571R
-ВАЗ      8450020058
-..."></textarea>
+        <label for="in">Вставьте текст с двумя столбцами</label>
+        <textarea id="in" placeholder="Пример:\nNissan   39100-00Q6J\nRenault  391004571R"></textarea>
+        <div class="controls">
+          <button id="btn-paste" class="btn-ghost">Вставить</button>
+          <button id="btn-clear" class="btn-danger">Очистить</button>
+        </div>
       </section>
 
       <section class="card">
-        <label class="label" for="out">Результат</label>
-        <textarea id="out" class="out" readonly placeholder="Здесь появится результат...
-391004571R
-391007212R
-391007857R"></textarea>
-        <p class="label" style="margin-top:8px">«Для Тирики» — построчно, «Для Ozon» — одной строкой через ;</p>
+        <label for="out">Результат</label>
+        <textarea id="out" readonly placeholder="Здесь появится результат..."></textarea>
+        <div class="controls">
+          <button id="btn-copy" class="btn-main">Копировать</button>
+          <button id="btn-download" class="btn-ghost">Скачать .txt</button>
+        </div>
+        <div id="info" class="info"></div>
+        <div id="removed" class="removed"></div>
       </section>
     </div>
 
-    <footer><span class="signature">made by ahiok</span></footer>
+    <footer>made by ahiok</footer>
   </div>
 
   <script>
-    const $  = (sel) => document.querySelector(sel);
-    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
-
-    const input       = $('#in');
-    const out         = $('#out');
-    const btnRun      = $('#btn-run');
-    const btnClear    = $('#btn-clear');
+    const $ = s => document.querySelector(s);
+    const input = $('#in');
+    const out = $('#out');
+    const btnPaste = $('#btn-paste');
+    const btnClear = $('#btn-clear');
+    const btnCopy = $('#btn-copy');
     const btnDownload = $('#btn-download');
+    const info = $('#info');
+    const removedBox = $('#removed');
 
     function extractCodes(raw){
       const lines = raw.split(/\r?\n/);
       const codes = [];
-      for (const line of lines){
-        if(!line.trim()) continue;
+      for(const line of lines){
         const parts = line.trim().split(/\s+/);
-        let token = parts.pop() || '';
-        token = token.replace(/[^A-Za-z0-9]/g, ''); // только латиница и цифры
-        if(!token) continue;
-        codes.push(token);
+        const token = parts.pop()?.replace(/[^A-Za-z0-9]/g, '') ?? '';
+        if(token) codes.push(token.toUpperCase());
       }
       return codes;
     }
 
     function uniqueStable(arr){
-      const seen = new Set(), res = [];
-      for (const x of arr) if(!seen.has(x)){ seen.add(x); res.push(x); }
-      return res;
+      const seen = new Set();
+      const removed = [];
+      const result = [];
+      for(const item of arr){
+        if(!seen.has(item)){
+          seen.add(item);
+          result.push(item);
+        } else {
+          removed.push(item);
+        }
+      }
+      return { result, removed };
     }
 
-    function formatOut(codes, mode){
+    function format(codes, mode){
       return mode === 'semicolon' ? codes.join(';') : codes.join('\n');
     }
 
     function run(){
-      const dedupe = $('#dedupe').checked;
-      const mode = $('input[name="mode"]:checked').value;
-
+      const mode = document.querySelector('input[name="mode"]:checked').value;
       let list = extractCodes(input.value);
-      list = list.map(x => x.toUpperCase()); // всегда UPPERCASE по умолчанию
-      if (dedupe) list = uniqueStable(list);
-      out.value = formatOut(list, mode);
+      const dedupe = $('#dedupe').checked;
+      let removed = [];
+      if(dedupe){
+        const {result, removed: rm} = uniqueStable(list);
+        list = result;
+        removed = rm;
+      }
+      out.value = format(list, mode);
+      info.textContent = `Всего: ${extractCodes(input.value).length}  ·  Уникальных: ${list.length}`;
+      removedBox.textContent = removed.length ? `Удалены дубликаты: ${removed.join(', ')}` : '';
+    }
+
+    function copy(){
+      navigator.clipboard.writeText(out.value);
     }
 
     function download(){
-      const blob = new Blob([out.value], {type: 'text/plain;charset=utf-8'});
+      const blob = new Blob([out.value], {type:'text/plain'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = 'codes.txt';
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
+      a.href = url; a.download = 'codes.txt'; a.click(); URL.revokeObjectURL(url);
     }
 
-    // listeners
-    btnRun.addEventListener('click', run);
-    btnClear.addEventListener('click', ()=>{ input.value=''; out.value=''; input.focus(); });
-    btnDownload.addEventListener('click', download);
-    $$('#dedupe, #mode-lines, #mode-ozon').forEach(el => el.addEventListener('change', run));
-    input.addEventListener('input', debounce(run, 120));
-    document.addEventListener('keydown', (e)=>{ if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='enter'){ run(); }});
-
-    function debounce(fn, ms){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn.apply(this,args), ms); }; }
-
-    run();
+    btnPaste.onclick = async ()=>{ input.value = await navigator.clipboard.readText(); run(); };
+    btnClear.onclick = ()=>{ input.value=''; out.value=''; info.textContent=''; removedBox.textContent=''; };
+    btnCopy.onclick = copy;
+    btnDownload.onclick = download;
+    input.addEventListener('input', run);
+    document.querySelectorAll('input[name="mode"], #dedupe').forEach(el=>el.addEventListener('change', run));
   </script>
 </body>
 </html>
