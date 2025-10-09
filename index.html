@@ -6,29 +6,56 @@
   <title>Экстрактор артикулов — Tirika / Ozon</title>
   <style>
     :root{
-      --bg: #0b1020; /* глубоко-тёмный фон */
+      --bg: #0b1020;
       --card:#121936;
       --ink:#e9ecf1;
       --muted:#9aa3b2;
       --brand:#7c5cff;
       --brand-2:#00e0a4;
       --danger:#ff5d6c;
+      --outline: rgba(255,255,255,.15);
       --ring: 0 0 0 2px color-mix(in oklab, var(--brand) 50%, transparent);
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
-      margin:0; font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
+      margin:0; font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
       color:var(--ink); background:
         radial-gradient(1200px 600px at 10% -10%, #1b2352 0%, transparent 70%),
         radial-gradient(1000px 500px at 110% 10%, #0d6a61 0%, transparent 60%),
         var(--bg);
     }
     .wrap{max-width:1100px; margin:32px auto; padding:0 20px}
-    header{display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:18px}
+    header{display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:14px}
     h1{font-size:clamp(20px, 4vw, 28px); margin:0; font-weight:800; letter-spacing:.2px}
-    .badge{background:linear-gradient(90deg,var(--brand), var(--brand-2));
-      color:#0d1020; font-weight:700; padding:4px 10px; border-radius:999px; font-size:12px}
+    .badge{background:linear-gradient(90deg,var(--brand),var(--brand-2)); color:#0d1020; font-weight:700; padding:4px 10px; border-radius:999px; font-size:12px}
+
+    /* toolbar */
+    .toolbar{
+      display:grid; grid-template-columns: 1fr auto; gap:12px;
+      background:color-mix(in oklab, var(--card) 94%, #fff 0%);
+      border:1px solid var(--outline); border-radius:20px; padding:12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.05);
+      margin-bottom:14px;
+    }
+    .toolbar .left{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+    .toolbar .right{display:flex; gap:10px; align-items:center}
+    .seg{display:inline-grid; grid-auto-flow:column; border:1px solid var(--outline); border-radius:12px; overflow:hidden}
+    .seg input{display:none}
+    .seg label{padding:10px 14px; background:transparent; color:var(--muted); font-weight:700; cursor:pointer}
+    .seg input:checked + label{background:rgba(255,255,255,.08); color:var(--ink)}
+    .switch-inline{display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--outline); border-radius:12px}
+    .switch-inline input{appearance:none; width:44px; height:26px; background:#1a2247; border:1px solid var(--outline); border-radius:999px; position:relative; outline:none; cursor:pointer}
+    .switch-inline input::after{content:""; position:absolute; top:2px; left:2px; width:22px; height:22px; background:linear-gradient(180deg,#fff,#d9e2ff); border-radius:50%; transition:left .2s}
+    .switch-inline input:checked::after{left:20px}
+
+    button{border:0; border-radius:12px; padding:10px 14px; font-weight:700; color:#0d1020; cursor:pointer;
+      background:linear-gradient(180deg, color-mix(in oklab, #fff 15%, var(--brand)) , var(--brand));
+      box-shadow: 0 10px 16px rgba(124,92,255,.25); transition: transform .05s ease, filter .2s ease}
+    button:hover{filter:saturate(1.12)}
+    button:active{transform: translateY(1px)}
+    .btn-ghost{background:transparent; color:var(--ink); border:1px solid var(--outline); box-shadow:none}
+    .btn-danger{background:linear-gradient(180deg, color-mix(in oklab, #fff 10%, var(--danger)), var(--danger))}
 
     .grid{display:grid; grid-template-columns: 1fr; gap:14px}
     @media (min-width:980px){ .grid{grid-template-columns: 1fr 1fr} }
@@ -42,56 +69,42 @@
     textarea, .out{
       width:100%; min-height:300px; background:#0c1430; color:var(--ink);
       border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:14px 14px 18px 14px;
-      outline:none; resize:vertical; font:14px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      outline:none; resize:vertical; font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
     }
     textarea:focus{box-shadow: var(--ring)}
 
-    .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:12px}
-    button, .seg label{cursor:pointer}
-
-    button{border:0; border-radius:12px; padding:10px 14px; font-weight:700; color:#0d1020;
-      background:linear-gradient(180deg, color-mix(in oklab, #fff 15%, var(--brand)) , var(--brand));
-      box-shadow: 0 10px 16px rgba(124,92,255,.25); transition: transform .05s ease, filter .2s ease}
-    button:hover{filter:saturate(1.15)}
-    button:active{transform: translateY(1px)}
-    .btn-ghost{background:transparent; color:var(--ink); border:1px solid rgba(255,255,255,.15); box-shadow:none}
-    .btn-danger{background:linear-gradient(180deg, color-mix(in oklab, #fff 10%, var(--danger)), var(--danger))}
-
-    .seg{display:inline-grid; grid-auto-flow:column; border:1px solid rgba(255,255,255,.15); border-radius:12px; overflow:hidden}
-    .seg input{display:none}
-    .seg label{padding:8px 12px; background:transparent; color:var(--muted); font-weight:700}
-    .seg input:checked + label{background:rgba(255,255,255,.08); color:var(--ink)}
-
-    .row{display:flex; flex-wrap:wrap; gap:16px; align-items:center}
-    .row .group{display:flex; align-items:center; gap:8px}
-
-    .switch{position:relative; width:44px; height:26px}
-    .switch input{display:none}
-    .track{position:absolute; inset:0; background:#1a2247; border:1px solid rgba(255,255,255,.15); border-radius:999px}
-    .thumb{position:absolute; top:2px; left:2px; width:22px; height:22px; background:linear-gradient(180deg,#fff,#d9e2ff); border-radius:50%; transition:left .2s}
-    .switch input:checked + .track .thumb{left:20px}
-
-    .hint{color:var(--muted); font-size:12px; margin-top:6px}
-    .kbd{font:12px ui-monospace, monospace; background:#0a1130; border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:1px 6px}
-
-    footer{opacity:.8; color:var(--muted); text-align:center; margin-top:22px}
-    .small{font-size:12px}
+    footer{margin-top:22px; text-align:center}
+    .signature{display:inline-flex; align-items:center; gap:10px; padding:8px 14px; border-radius:999px; border:1px solid var(--outline);
+      color:#fff; font-weight:900; letter-spacing:.4px; text-transform:lowercase}
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
       <h1>Экстрактор артикулов <span class="badge">Tirika · Ozon</span></h1>
-      <div class="row" aria-label="Формат вывода">
-        <div class="seg" role="tablist">
+    </header>
+
+    <!-- Профессиональный тулбар -->
+    <div class="toolbar" role="toolbar" aria-label="Панель управления">
+      <div class="left">
+        <div class="seg" role="tablist" aria-label="Формат вывода">
           <input type="radio" name="mode" id="mode-lines" value="lines" checked>
           <label for="mode-lines" role="tab">Для Тирики</label>
           <input type="radio" name="mode" id="mode-ozon" value="semicolon">
           <label for="mode-ozon" role="tab">Для Ozon</label>
         </div>
+        <label class="switch-inline" title="Удалять повторы кодов">
+          <span class="label" style="margin:0">Без дубликатов</span>
+          <input id="dedupe" type="checkbox" checked>
+        </label>
       </div>
-    </header>
+      <div class="right">
+        <button id="btn-run" title="Преобразовать (Ctrl+Enter)">Преобразовать</button>
+        <button id="btn-download" class="btn-ghost" title="Скачать результат .txt">Скачать .txt</button>
+        <button id="btn-clear" class="btn-danger" title="Очистить поля">Очистить</button>
+      </div>
+    </div>
 
     <div class="grid">
       <section class="card">
@@ -101,108 +114,63 @@ Nissan   39100-00Q6J
 Renault  391004571R
 ВАЗ      8450020058
 ..."></textarea>
-
-        <div class="controls">
-          <button id="btn-run" title="Преобразовать (Ctrl+Enter)">Преобразовать</button>
-          <button id="btn-copy" class="btn-ghost">Копировать результат</button>
-          <button id="btn-clear" class="btn-danger">Очистить</button>
-          <button id="btn-demo" class="btn-ghost">Вставить пример</button>
-        </div>
-
-        <div class="row" style="margin-top:10px">
-          <div class="group" title="Удалять повторы кодов">
-            <label class="label" style="margin:0">Без дубликатов</label>
-            <label class="switch"><input id="dedupe" type="checkbox" checked><span class="track"><span class="thumb"></span></span></label>
-          </div>
-          <div class="group" title="Перевести коды в верхний регистр">
-            <label class="label" style="margin:0">UPPERCASE</label>
-            <label class="switch"><input id="upper" type="checkbox" checked><span class="track"><span class="thumb"></span></span></label>
-          </div>
-          <div class="group" title="Оставить только цифры и латиницу">
-            <label class="label" style="margin:0">Только A–Z 0–9</label>
-            <span class="hint">точки, пробелы, дефисы будут удалены</span>
-          </div>
-        </div>
-        <p class="hint">Подсказка: перетяните .txt прямо в поле или нажмите <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span>.</p>
       </section>
 
       <section class="card">
         <label class="label" for="out">Результат</label>
-        <textarea id="out" class="out" readonly placeholder="Здесь появится результат...\n391004571R\n391007212R\n391007857R"></textarea>
-        <div class="controls">
-          <button id="btn-copy2">Копировать</button>
-          <button id="btn-download" class="btn-ghost">Скачать .txt</button>
-        </div>
-        <p class="hint small">Формат вывода выбирается вверху: «Для Тирики» — каждый код с новой строки, «Для Ozon» — через точку с запятой на одной строке.</p>
+        <textarea id="out" class="out" readonly placeholder="Здесь появится результат...
+391004571R
+391007212R
+391007857R"></textarea>
+        <p class="label" style="margin-top:8px">«Для Тирики» — построчно, «Для Ozon» — одной строкой через ;</p>
       </section>
     </div>
 
-    <footer class="small">Сделано с заботой: удаляем всё, кроме латинских букв и цифр · сохраняем порядок · по желанию убираем дубликаты.</footer>
+    <footer><span class="signature">made by ahiok</span></footer>
   </div>
 
   <script>
-    const $ = (sel) => document.querySelector(sel);
+    const $  = (sel) => document.querySelector(sel);
     const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
-    const input = $('#in');
-    const out = $('#out');
-    const btnRun = $('#btn-run');
-    const btnCopy = $('#btn-copy');
-    const btnCopy2 = $('#btn-copy2');
-    const btnClear = $('#btn-clear');
-    const btnDemo = $('#btn-demo');
+    const input       = $('#in');
+    const out         = $('#out');
+    const btnRun      = $('#btn-run');
+    const btnClear    = $('#btn-clear');
     const btnDownload = $('#btn-download');
 
     function extractCodes(raw){
       const lines = raw.split(/\r?\n/);
       const codes = [];
-      for(const line of lines){
+      for (const line of lines){
         if(!line.trim()) continue;
-        // Берём последний «столбец» в строке
         const parts = line.trim().split(/\s+/);
         let token = parts.pop() || '';
-        // Очищаем: только латиница и цифры
-        token = token.replace(/[^A-Za-z0-9]/g, '');
+        token = token.replace(/[^A-Za-z0-9]/g, ''); // только латиница и цифры
         if(!token) continue;
         codes.push(token);
       }
       return codes;
     }
 
-    function format(codes, mode){
-      return mode === 'semicolon' ? codes.join(';') : codes.join('\n');
-    }
-
     function uniqueStable(arr){
-      const seen = new Set();
-      const res = [];
-      for(const x of arr){ if(!seen.has(x)){ seen.add(x); res.push(x); } }
+      const seen = new Set(), res = [];
+      for (const x of arr) if(!seen.has(x)){ seen.add(x); res.push(x); }
       return res;
     }
 
+    function formatOut(codes, mode){
+      return mode === 'semicolon' ? codes.join(';') : codes.join('\n');
+    }
+
     function run(){
-      const upper = $('#upper').checked;
       const dedupe = $('#dedupe').checked;
       const mode = $('input[name="mode"]:checked').value;
 
       let list = extractCodes(input.value);
-      if(upper) list = list.map(x => x.toUpperCase());
-      if(dedupe) list = uniqueStable(list);
-      out.value = format(list, mode);
-    }
-
-    function copy(textarea){
-      textarea.select();
-      textarea.setSelectionRange(0, 999999);
-      navigator.clipboard.writeText(textarea.value).then(()=>{
-        flash(textarea);
-      }).catch(()=>{
-        document.execCommand('copy');
-      });
-    }
-
-    function flash(el){
-      el.animate([{boxShadow:'0 0 0 0 rgba(124,92,255,.0)'},{boxShadow:'0 0 0 10px rgba(124,92,255,.25)'},{boxShadow:'0 0 0 0 rgba(124,92,255,.0)'}],{duration:600});
+      list = list.map(x => x.toUpperCase()); // всегда UPPERCASE по умолчанию
+      if (dedupe) list = uniqueStable(list);
+      out.value = formatOut(list, mode);
     }
 
     function download(){
@@ -214,41 +182,16 @@ Renault  391004571R
       URL.revokeObjectURL(url);
     }
 
-    // Drag & Drop в textarea
-    input.addEventListener('dragover', (e)=>{ e.preventDefault(); });
-    input.addEventListener('drop', async (e)=>{
-      e.preventDefault();
-      const file = e.dataTransfer.files?.[0];
-      if(file){
-        const text = await file.text();
-        input.value = text; run();
-      }
-    });
-
-    // Слушатели
+    // listeners
     btnRun.addEventListener('click', run);
-    btnCopy.addEventListener('click', ()=>copy(out));
-    btnCopy2.addEventListener('click', ()=>copy(out));
     btnClear.addEventListener('click', ()=>{ input.value=''; out.value=''; input.focus(); });
     btnDownload.addEventListener('click', download);
-    $$('#upper, #dedupe, #mode-lines, #mode-ozon').forEach(el=> el.addEventListener('change', run));
+    $$('#dedupe, #mode-lines, #mode-ozon').forEach(el => el.addEventListener('change', run));
     input.addEventListener('input', debounce(run, 120));
+    document.addEventListener('keydown', (e)=>{ if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='enter'){ run(); }});
 
-    document.addEventListener('keydown', (e)=>{
-      if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='enter'){ run(); }
-    });
+    function debounce(fn, ms){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn.apply(this,args), ms); }; }
 
-    btnDemo.addEventListener('click', ()=>{
-      input.value = `Nissan   39100-00Q6J\nNissan   39100-1U600\nNissan   39100-9U005\nNissan   39100-BC500\nNissan   39100-BC55A\nNissan   39101-00Q6J\nNissan   39101-1U600\nNissan   39101-4232R\nNissan   39101-8946R\nNissan   39101-9U005\nNissan   39101-BC500\nNissan   39101-BC55A\nNissan   39211-BC50J\nNissan   82008-63653\nRenault   391002033R\nRenault   391004571R\nRenault   391007212R\nRenault   391007857R\nRenault   391008333R\nRenault   391014232R\nRenault   391016613R\nRenault   391018112R\nRenault   391018946R\nRenault   6001550690\nRenault   6001550692\nRenault   6001551094\nRenault   6001551096\nRenault   8200820344\nRenault   8200863524\nRenault   8200863653\nRenault   8201187694\nRenault   8201187935\nВАЗ   391004571R\nВАЗ   391007857R\nВАЗ   391008333R\nВАЗ   391014232R\nВАЗ   391016613R\nВАЗ   391018946R\nВАЗ   8200863653\nВАЗ   8450009548\nВАЗ   8450009549\nВАЗ   8450020013\nВАЗ   8450020014\nВАЗ   8450020057\nВАЗ   8450020058`;
-      run();
-    });
-
-    // helpers
-    function debounce(fn, ms){
-      let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn.apply(this,args), ms); };
-    }
-
-    // Первый рендер
     run();
   </script>
 </body>
