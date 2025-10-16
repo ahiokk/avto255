@@ -138,11 +138,23 @@ Renault   391018946R"></textarea>
     function extractCodes(raw){
       const lines = raw.split(/\r?\n/);
       const codes = [];
-      for(const line of lines){
-        if(!line.trim()) continue;
-        const parts = line.trim().split(/\s+/);
-        const token = (parts.pop() || '').replace(/[^A-Za-z0-9]/g,'');
-        if(token) codes.push(token.toUpperCase());
+
+      for (const line of lines){
+        if (!line.trim()) continue;
+
+        // разбиваем на токены по пробелам
+        const tokens = line.trim().split(/\s+/);
+
+        // если первый токен — слово из букв (бренд), отбрасываем его
+        if (tokens.length && /^[\p{L}]+$/u.test(tokens[0])) {
+          tokens.shift();
+        }
+
+        // склеиваем оставшиеся части артикула и чистим
+        const combined = tokens.join('');
+        const cleaned = combined.replace(/[^0-9A-Za-zА-Яа-я]/g, '').toUpperCase();
+
+        if (cleaned) codes.push(cleaned);
       }
       return codes;
     }
